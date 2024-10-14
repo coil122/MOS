@@ -1,0 +1,43 @@
+ name: "Terraform CI/CD Pipeline to Azure"
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow on push to the main branch
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: "Checkout GitHub repo"
+        uses: actions/checkout@v3
+
+      # Step 2: Setup Terraform CLI
+      - name: "Setup Terraform"
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0  # Specify the Terraform version you want to use
+
+      # Step 3: Azure login using GitHub OIDC (for secure login)
+      - name: "Azure Login"
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}         # Your appId
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}       # Your tenant ID
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Your subscription ID
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }} # Your password
+
+      # Step 4: Terraform Init (initialize Terraform configuration)
+      - name: "Terraform Init"
+        run: terraform init
+
+      # Step 5: Terraform Plan (check what changes will be applied)
+      - name: "Terraform Plan"
+        run: terraform plan
+
+      # Step 6: Terraform Apply (apply the configuration to Azure)
+      - name: "Terraform Apply"
+        run: terraform apply -auto-approve
+
